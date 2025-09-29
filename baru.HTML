@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Urutkan Kata</title>
+  <style>
+    .container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .word {
+      padding: 10px 15px;
+      background-color: #dceeff;
+      border: 1px solid #333;
+      border-radius: 5px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .drop-area {
+      width: 100%;
+      min-height: 60px;
+      border: 2px dashed #999;
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+
+    .dropped-word {
+      display: inline-block;
+      margin-right: 5px;
+      padding: 5px 10px;
+      background-color: #b3ffb3;
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+
+    button {
+      margin-top: 15px;
+    }
+
+    #feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Urutkan Kata Berikut</h2>
+  <p>Tarik dan letakkan kata ke area di bawah sesuai urutan yang benar</p>
+
+  <div id="word-container" class="container"></div>
+
+  <div id="drop-area" class="drop-area" ondragover="allowDrop(event)" ondrop="drop(event)">
+    <p>Letakkan kata di sini...</p>
+  </div>
+
+  <button onclick="checkAnswer()">Periksa Jawaban</button>
+
+  <p id="feedback"></p>
+
+  <script>
+    const correctOrder = ["Assuqi", "Illa", "adhabbu", "anna"];
+    let words = [...correctOrder];
+
+    // Acak kata
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Tampilkan kata-kata acak
+    function renderWords() {
+      const container = document.getElementById("word-container");
+      container.innerHTML = "";
+      shuffle(words).forEach((word, index) => {
+        const div = document.createElement("div");
+        div.className = "word";
+        div.textContent = word;
+        div.draggable = true;
+        div.id = "word-" + index;
+        div.ondragstart = drag;
+        container.appendChild(div);
+      });
+    }
+
+    // Drag and drop handlers
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const id = ev.dataTransfer.getData("text");
+      const draggedElement = document.getElementById(id);
+
+      if (draggedElement) {
+        const newWord = document.createElement("span");
+        newWord.className = "dropped-word";
+        newWord.textContent = draggedElement.textContent;
+        document.getElementById("drop-area").appendChild(newWord);
+
+        // Hapus dari tempat semula
+        draggedElement.remove();
+      }
+    }
+
+    // Periksa jawaban
+    function checkAnswer() {
+      const dropArea = document.getElementById("drop-area");
+      const droppedWords = Array.from(dropArea.getElementsByClassName("dropped-word"))
+        .map(span => span.textContent);
+
+      const feedback = document.getElementById("feedback");
+      if (droppedWords.length !== correctOrder.length) {
+        feedback.textContent = "Silakan lengkapi semua kata terlebih dahulu.";
+        feedback.style.color = "orange";
+        return;
+      }
+
+      const isCorrect = droppedWords.every((word, index) => word === correctOrder[index]);
+      if (isCorrect) {
+        feedback.textContent = "Hebat, jawaban anda benar!";
+        feedback.style.color = "green";
+      } else {
+        feedback.textContent = "Maaf, jawaban anda salah.";
+        feedback.style.color = "red";
+      }
+    }
+
+    // Jalankan pertama kali
+    renderWords();
+  </script>
+
+</body>
+</html>
